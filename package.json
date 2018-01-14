@@ -1,0 +1,25 @@
+{
+  "name": "dummy-electron-project",
+  "version": "1.0.0",
+  "main": "main.js",
+  "dependencies": {
+    "bootstrap": "^4.0.0-alpha.6",
+    "electron-reload": "^1.2.2",
+    "jquery": "^3.1.1",
+    "md5-hash": "^1.0.1",
+    "npm": "^5.6.0",
+    "pouchdb": "^6.1.2",
+    "pouchdb-find": "^6.4.1",
+    "tether": "^1.4"
+  },
+  "description": "Dummy electron project",
+  "devDependencies": {
+    "electron": "^1.4.9",
+    "electron-rebuild": "^1.5.7"
+  },
+  "scripts": {
+    "start": "node_modules/.bin/electron ."
+  },
+  "author": "Fotis Athinaios <fotis.athineos@gmail.com",
+  "license": "ISC"
+}
