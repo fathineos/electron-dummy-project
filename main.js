@@ -2,6 +2,7 @@ const electron = require('electron');
 const {app, BrowserWindow} = electron;
 
 const crypto = require('crypto')
+const db_name = 'electron-db';
 
 // reload electron on change
 const path = require('path')
@@ -11,7 +12,7 @@ require('electron-reload')(__dirname, {
 
 var PouchDB = require('pouchdb');
 PouchDB.plugin(require('pouchdb-find'));
-var db = new PouchDB('pouch');
+var db = new PouchDB(db_name);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -72,13 +73,12 @@ ipc.on('addUser', function(event, data) {
   db.find({
     selector: buildUserSelector({car_plate: data["car_plate"]}),
   }).then(function (result) {
-    console.log(result.docs);
-    if (result.docs.length === 0 && data['full_name'] && data['car_plate']) {
+    if (result.docs.length === 0 && data['name'] && data['car_plate']) {
       let doc = {
         _id: crypto.randomBytes(20).toString('hex'),
         type: "user",
         car_plate: data["car_plate"],
-        name: data["full_name"],
+        name: data["name"],
       };
       console.log('adding user');
       console.log(doc);
@@ -100,6 +100,18 @@ ipc.on('deleteUser', function(event, user_id) {
     db.remove(doc).then(function (result) {
       console.log("user deleted");
       event.sender.send('ipcRecordDeleted', result['id']);
+    });
+  });
+});
+
+ipc.on('updateUser', function(event, user_id, field, value) {
+  db.get(user_id).then(function(doc) {
+    doc[field] = value;
+    console.log('updating user');
+    db.put(doc).then(function (result) {
+      event.sender.send('ipcRecordUpdated', result['id']);
+    }).catch(function(err) {
+      console.log(err);
     });
   });
 });
@@ -142,14 +154,15 @@ function buildUserSelector(data) {
   if (data['_id']) {
     selector = {_id: data['_id']};
   } else if (data['car_plate']) {
-    selector = {car_plate: data['car_plate']};
-  } else if (data['full_name']) {
-    let regex = ".*" + data['full_name'] + ".*";
+    let regex = RegExp(data['car_plate'], "i");
+    selector = {car_plate: {$regex: regex}};
+  } else if (data['name']) {
+    let regex = RegExp(".*" + data['name'] + ".*", "i");
     selector = {
-      _id: {$gte: null},
       name: {$regex: regex},
     };
   }
+  console.log(selector);
   return selector;
 }
 
@@ -168,5 +181,5 @@ ipc.on('fetchServices', function(event, data) {
 ipc.on('resetDb', function(event, data) {
   console.log('Recreating DB')
   db.destroy();
-  db = new PouchDB('pouch');
+  db = new PouchDB(db_name);
 });

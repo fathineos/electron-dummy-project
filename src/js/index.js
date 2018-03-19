@@ -8,6 +8,7 @@ var tblServices = null;
 
 var user_id = null;
 var gl_users = {};
+var _debug = null;
 
 // wait for document to load
 document.addEventListener('DOMContentLoaded', function () {
@@ -30,14 +31,14 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Fetch initial users
-  ipc.send('fetchUsers', {"full_name": null, "car_plate": null});
+  ipc.send('fetchUsers', {"name": null, "car_plate": null});
 });
 
 function addUser() {
   let inpUserName = document.getElementById('inp-user-name').value;
   let inpCarPlate = document.getElementById('inp-car-plate').value;
   if (inpUserName && inpCarPlate) {
-    let data = {"full_name": inpUserName, "car_plate": inpCarPlate};
+    let data = {"name": inpUserName, "car_plate": inpCarPlate};
     ipc.send('addUser', data);
   }
 }
@@ -46,10 +47,14 @@ function deleteUser(_user_id) {
   ipc.send('deleteUser', _user_id);
 }
 
-function searchUsers(full_name, car_plate) {
+function updateUser(_user_id, field_name, value) {
+  ipc.send('updateUser', _user_id, field_name, value);
+}
+
+function searchUsers(name, car_plate) {
   let inpUserName = document.getElementById('inp-user-name').value;
   let inpCarPlate = document.getElementById('inp-car-plate').value;
-  let user_data = {"full_name": inpUserName, "car_plate": inpCarPlate};
+  let user_data = {"name": inpUserName, "car_plate": inpCarPlate};
   ipc.send('fetchUsers', user_data);
 }
 
@@ -71,12 +76,10 @@ function populateUserList(users) {
     users.forEach((user, index) => {
       tblUsers.row.add([
         index + 1,
-        user.name,
-        user.car_plate,
+        '<div contenteditable=true id="div-user-field" data-userid=' + user._id + ' data-field="name">' + user.name + '</div>',
+        '<div contenteditable=true id="div-user-field" data-userid=' + user._id + ' data-field="car_plate">' + user.car_plate + '</div>',
         '<button type="button" class="btn btn-outline-danger" id="btn-user-delete" data-userid="'
         + user._id +'"><span class="icon icon-minus-circled"></span></button>' +
-        '<button type="button" class="btn btn-outline-warning" data-toggle="modal" data-target="#modal-user-edit" data-userid="'
-        + user._id +'"><span class="icon icon-pencil"></span></button>' +
         '<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#modal-user-view" data-userid="' +
         + user._id +'"><span class="icon icon-eye"></span></button>'
       ]);
@@ -139,11 +142,21 @@ function initListeners() {
       searchUsers();
     });
 
+    $('#tbl-users td div').each(function(event) {
+      $(this).blur(function(event) {
+        let _this = $(this);
+        let _user_id = _this.data('userid');
+        let field_name = _this.data('field');
+        let new_value = this.innerText;
+        updateUser(_user_id, field_name, new_value);
+      });
+    });
+
     $('#tbl-users #btn-user-delete').each(function() {
       $(this).click(function() {
         let _user_id = $(this).data('userid');
         if (_user_id) {
-          deleteUser(_user_id);
+           deleteUser(_user_id);
         }
       });
     });
