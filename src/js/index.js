@@ -100,7 +100,7 @@ function populateServiceList(services) {
       service.date,
       service.km,
       service.description,
-      '<button type="button" class="btn btn-outline-danger" data-serviceid="'
+      '<button type="button" class="btn btn-outline-danger" id="btn-service-delete" data-serviceid="'
       + service._id +'"><span class="icon icon-minus-circled"></span></button>'
     ]);
   });
@@ -115,21 +115,7 @@ function initListeners() {
     });
 
     populateUserList(users);
-  });
 
-  ipc.on('ipcFetchServices', function(event, response) {
-    populateServiceList(response);
-  });
-
-  ipc.on('ipcRecordConflict', function(event, response) {
-    alert("Record already exists");
-  });
-
-  ipc.on('ipcRecordDeleted', function(event, response) {
-      searchUsers();
-  });
-
-  $(document).ready(function() {
     // Register add user event
     btnUserAddIndex = document.getElementById('btn-user-add');
     btnUserAddIndex.addEventListener('click', function() {
@@ -162,6 +148,33 @@ function initListeners() {
     });
   });
 
+  ipc.on('ipcFetchServices', function(event, response) {
+    populateServiceList(response);
+  });
+
+  function deleteService(service_id) {
+    ipc.send('deleteService', service_id);
+  }
+
+  ipc.on('ipcRecordConflict', function(event, response) {
+    alert("Record already exists");
+  });
+
+  ipc.on('ipcRecordDeleted', function(event, response) {
+      searchUsers();
+  });
+
+  ipc.on('ipcFetchServices', function(event, response) {
+    $('#tbl-services #btn-service-delete').each(function() {
+      $(this).click(function() {
+        let service_id = $(this).data('serviceid');
+        if (service_id) {
+           deleteService(service_id);
+        }
+      });
+    });
+  });
+
   $('#modal-user-edit').on('show.bs.modal', function (event) {
     let modal = $(this);
     let button = $(event.relatedTarget);
@@ -181,4 +194,5 @@ function initListeners() {
   btnVisitAdd.addEventListener('click', function() {
     addService();
   });
+
 };

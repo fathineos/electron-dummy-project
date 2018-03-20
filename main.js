@@ -136,10 +136,10 @@ ipc.on('addService', function(event, user_id, data) {
 });
 
 ipc.on('fetchUsers', function(event, data) {
+    console.log('fetching users');
   db.find({
     selector: buildUserSelector(data),
   }).then(function (result) {
-    console.log('fetched users');
     console.log(result);
 
     event.sender.send('ipcFetchUsers', result.docs);
@@ -175,6 +175,15 @@ ipc.on('fetchServices', function(event, data) {
     event.sender.send('ipcFetchServices', result.docs);
   }).catch(function (err) {
     console.log(err);
+  });
+});
+
+ipc.on('deleteService', function(event, service_id) {
+  db.get(service_id).then(function(doc) {
+    db.remove(doc).then(function (result) {
+      console.log("service deleted");
+      event.sender.send('ipcRecordDeleted', result['id']);
+    });
   });
 });
 
