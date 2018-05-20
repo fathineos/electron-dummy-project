@@ -1,0 +1,12 @@
+.btn-space {
+  margin-right: 5px;
+}
+
+/* Show new line characters in tables */
+td {
+  white-space: pre;
+}
+
+table.dataTable.compact thead th, table.dataTable.compact thead td {
+  padding: 4px 0px 4px 4px;
+}

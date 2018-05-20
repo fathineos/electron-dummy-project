@@ -21,13 +21,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // initialize users dataTable
   tblUsers = $('#tbl-users').DataTable({
-    ordering: false,
-    searching: false
+    'ordering': false,
+    'searching': false,
+    'pagingType': 'full_numbers',
+    'info': false,
+    'lengthChange': false,
   });
 
   tblServices = $('#tbl-services').DataTable({
-    ordering: false,
-    searching: false
+    'ordering': false,
+    'searching': false,
+    'pagingType': 'full_numbers',
+    'info': false,
+    'lengthChange': false,
+    'bAutoWidth': false,
+    'aoColumns' : [
+      { sWidth: '5%' },
+      { sWidth: '20%' },
+      { sWidth: '15%' },
+      { sWidth: '60%' },
+    ]
   });
 
   // Fetch initial users
@@ -78,9 +91,9 @@ function populateUserList(users) {
         index + 1,
         '<div contenteditable=true id="div-user-field" data-userid=' + user._id + ' data-field="name">' + user.name + '</div>',
         '<div contenteditable=true id="div-user-field" data-userid=' + user._id + ' data-field="car_plate">' + user.car_plate + '</div>',
-        '<button type="button" class="btn btn-outline-danger" id="btn-user-delete" data-userid="'
+        '<button type="button" class="btn btn-outline-danger btn-sm btn-space" id="btn-user-delete" data-userid="'
         + user._id +'"><span class="icon icon-minus-circled"></span></button>' +
-        '<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#modal-user-view" data-userid="' +
+        '<button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modal-user-view" data-userid="' +
         + user._id +'"><span class="icon icon-eye"></span></button>'
       ]);
     });
@@ -97,11 +110,11 @@ function populateServiceList(services) {
   services.forEach((service, index) => {
     tblServices.row.add([
       index + 1,
-      service.date,
-      service.km,
-      service.description,
-      '<button type="button" class="btn btn-outline-danger" id="btn-service-delete" data-serviceid="'
-      + service._id +'"><span class="icon icon-minus-circled"></span></button>'
+      '<div contenteditable=true id="div-service-field" data-serviceid=' + service._id + ' data-field="date">' + service.date + '</div>',
+      '<div contenteditable=true id="div-service-field" data-serviceid=' + service._id + ' data-field="km">' + service.km + '</div>',
+      '<div contenteditable=true id="div-service-field" data-serviceid=' + service._id + ' data-field="description">' + service.description + '</div>',
+      '<button type="button" class="btn btn-outline-danger btn-sm btn-space" id="btn-service-delete" data-serviceid="'
+      + service._id +'"><span class="icon icon-minus-circled btn-sm"></span></button>'
     ]);
   });
   tblServices.draw();
@@ -194,5 +207,4 @@ function initListeners() {
   btnVisitAdd.addEventListener('click', function() {
     addService();
   });
-
 };
