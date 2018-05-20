@@ -95,19 +95,19 @@ ipc.on('addUser', function(event, data) {
   });
 })
 
-ipc.on('deleteUser', function(event, user_id) {
-  db.get(user_id).then(function(doc) {
+ipc.on('deleteDoc', function(event, doc_id) {
+  db.get(doc_id).then(function(doc) {
     db.remove(doc).then(function (result) {
-      console.log("user deleted");
-      event.sender.send('ipcRecordDeleted', result['id']);
+      console.log('deleted ' + doc['type']);
+      event.sender.send('ipcRecordDeleted', result['doc_id']);
     });
   });
 });
 
-ipc.on('updateUser', function(event, user_id, field, value) {
-  db.get(user_id).then(function(doc) {
+ipc.on('updateDoc', function(event, doc_id, field, value) {
+  db.get(doc_id).then(function(doc) {
     doc[field] = value;
-    console.log('updating user');
+    console.log('updating ' + doc['type']);
     db.put(doc).then(function (result) {
       event.sender.send('ipcRecordUpdated', result['id']);
     }).catch(function(err) {
@@ -175,15 +175,6 @@ ipc.on('fetchServices', function(event, data) {
     event.sender.send('ipcFetchServices', result.docs);
   }).catch(function (err) {
     console.log(err);
-  });
-});
-
-ipc.on('deleteService', function(event, service_id) {
-  db.get(service_id).then(function(doc) {
-    db.remove(doc).then(function (result) {
-      console.log("service deleted");
-      event.sender.send('ipcRecordDeleted', result['id']);
-    });
   });
 });
 

@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     'ordering': false,
     'searching': false,
     'pagingType': 'full_numbers',
+    'pageLength': 50,
     'info': false,
     'lengthChange': false,
   });
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
     'ordering': false,
     'searching': false,
     'pagingType': 'full_numbers',
+    'pageLength': 10,
     'info': false,
     'lengthChange': false,
     'bAutoWidth': false,
@@ -57,11 +59,15 @@ function addUser() {
 }
 
 function deleteUser(_user_id) {
-  ipc.send('deleteUser', _user_id);
+  ipc.send('deleteDoc', _user_id);
 }
 
 function updateUser(_user_id, field_name, value) {
-  ipc.send('updateUser', _user_id, field_name, value);
+  ipc.send('updateDoc', _user_id, field_name, value);
+}
+
+function updateService(_service_id, field_name, value) {
+  ipc.send('updateDoc', _service_id, field_name, value);
 }
 
 function searchUsers(name, car_plate) {
@@ -163,10 +169,21 @@ function initListeners() {
 
   ipc.on('ipcFetchServices', function(event, response) {
     populateServiceList(response);
+    $('#tbl-services td div').each(function(event) {
+      $(this).blur(function(event) {
+        let _this = $(this);
+        let _service_id = _this.data('serviceid');
+        let field_name = _this.data('field');
+        let new_value = this.innerText;
+        console.log(_service_id)
+        updateService(_service_id, field_name, new_value);
+      });
+    });
+
   });
 
   function deleteService(service_id) {
-    ipc.send('deleteService', service_id);
+    ipc.send('deleteDoc', service_id);
   }
 
   ipc.on('ipcRecordConflict', function(event, response) {
