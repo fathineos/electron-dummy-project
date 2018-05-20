@@ -14,6 +14,12 @@ var PouchDB = require('pouchdb');
 PouchDB.plugin(require('pouchdb-find'));
 var db = new PouchDB(db_name);
 
+// Toolset to backup db
+var fs = require('fs');
+var replicationStream = require('pouchdb-replication-stream');
+PouchDB.plugin(replicationStream.plugin);
+PouchDB.adapter('writableStream', replicationStream.adapters.writableStream);
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
@@ -175,6 +181,13 @@ ipc.on('fetchServices', function(event, data) {
     event.sender.send('ipcFetchServices', result.docs);
   }).catch(function (err) {
     console.log(err);
+  });
+});
+
+ipc.on('dumpDb', function(event, data) {
+  let ws = fs.createWriteStream('dump.txt');
+  db.dump(ws).then(function (res) {
+    // res should be {ok: true}
   });
 });
 
