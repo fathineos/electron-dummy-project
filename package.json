@@ -4,19 +4,22 @@
   "main": "main.js",
   "dependencies": {
     "bootstrap": "4.1.1",
-    "popper.js": "1.14.3",
     "electron-reload": "^1.2.2",
     "jquery": "^3.1.1",
+    "leveldown": "^4.0.0",
     "md5-hash": "^1.0.1",
+    "nan": "^2.9.2",
     "npm": "^6.0.0",
+    "popper.js": "1.14.3",
     "pouchdb": "6.4.3",
     "pouchdb-find": "^6.4.1",
-    "tether": "1.4",
-    "nan": "^2.9.2"
+    "pouchdb-load": "^1.0.0",
+    "pouchdb-replication-stream": "1.2.9",
+    "tether": "1.4"
   },
   "description": "Dummy electron project",
   "devDependencies": {
-    "electron": "2.0.1",
+    "electron": "^2.0.1",
     "electron-rebuild": "1.7.3"
   },
   "scripts": {
