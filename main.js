@@ -1,14 +1,69 @@
 const electron = require('electron');
-const {app, BrowserWindow} = electron;
+const {app, BrowserWindow, dialog, Menu, ipcRenderer} = electron;
+
+const debug = true;
+
+function dumpDb(menuItem, BrowserWindow, event) {
+  let date_str = (new Date()).toLocaleString(
+    'en-GB', {year:'numeric', day: 'numeric', month: 'numeric'}
+  ).split('/').join('')
+  let ws = fs.createWriteStream('db-' + date_str + '.json');
+  db.dump(ws).then(function (res) {
+    BrowserWindow.webContents.send('ipcAlertMessage', 'Backup Created!');
+  });
+}
+
+function restoreDb(menuItem, BrowserWindow, event) {
+  dialog.showOpenDialog(
+    {properties: ['openFile'], filters: [{extensions: ['json'] }]},
+    function (filePaths) {
+      var rs = fs.createReadStream(filePaths[0]);
+      db.load(rs).then(function() {
+        BrowserWindow.webContents.send('ipcAlertMessage', 'Backup Restored!');
+        if (debug == true) {
+          console.log('restored db');
+        }
+      }).catch(function (err) {
+        if (debug == true) {
+          console.log('failed to restore db');
+        }
+      })
+    }
+  )
+}
+
+const template = [
+  {
+    label: 'Database',
+    submenu: [
+      {
+        label: 'Backup Database',
+        click: (item, focusedWindow, event) => { dumpDb(item, focusedWindow, event) }
+      },
+      {
+        label: 'Restore Database',
+        click: (item, focusedWindow, event) => { restoreDb() }
+      },
+      {
+        label: 'Quit',
+        accelerator: 'Cmd+Q',
+        click: () => { app.quit(); }
+      }
+    ]
+  },
+]
+const menu = Menu.buildFromTemplate(template)
 
 const crypto = require('crypto')
 const db_name = 'electron-db';
 
 // reload electron on change
-const path = require('path')
-require('electron-reload')(__dirname, {
-  electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
-});
+if (debug == true) {
+  const path = require('path')
+  require('electron-reload')(__dirname, {
+    electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
+  });
+}
 
 var PouchDB = require('pouchdb');
 PouchDB.plugin(require('pouchdb-find'));
@@ -43,10 +98,15 @@ function createWindow () {
   })
 }
 
+function createMenu() {
+  Menu.setApplicationMenu(menu)
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
+app.on('ready', createMenu);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -70,10 +130,6 @@ app.on('activate', () => {
 
 var ipc = electron.ipcMain;
 
-ipc.on('invokeAction', function(event, data) {
-  event.sender.send('actionReply', 'test message');
-})
-
 ipc.on('addUser', function(event, data) {
   // check if a doc with same car_plate exists
   db.find({
@@ -86,25 +142,35 @@ ipc.on('addUser', function(event, data) {
         car_plate: data["car_plate"],
         name: data["name"],
       };
-      console.log('adding user');
-      console.log(doc);
+      if (debug == true) {
+        console.log('adding user');
+        console.log(doc);
+      }
       db.put(doc).then(function (response) {
       }).catch(function (err) {
-        console.log(err);
+        if (debug == true) {
+          console.log(err);
+        }
       });
     } else {
-      console.log('user already exists');
+      if (debug == true) {
+        console.log('user already exists');
+      }
       event.sender.send('ipcRecordConflict');
     }
   }).catch(function (err) {
-    console.log(err);
+    if (debug == true) {
+      console.log(err);
+    }
   });
 })
 
 ipc.on('deleteDoc', function(event, doc_id) {
   db.get(doc_id).then(function(doc) {
     db.remove(doc).then(function (result) {
-      console.log('deleted ' + doc['type']);
+      if (debug == true) {
+        console.log('deleted ' + doc['type']);
+      }
       event.sender.send('ipcRecordDeleted', result['doc_id']);
     });
   });
@@ -113,11 +179,15 @@ ipc.on('deleteDoc', function(event, doc_id) {
 ipc.on('updateDoc', function(event, doc_id, field, value) {
   db.get(doc_id).then(function(doc) {
     doc[field] = value;
-    console.log('updating ' + doc['type']);
+    if (debug == true) {
+      console.log('updating ' + doc['type']);
+    }
     db.put(doc).then(function (result) {
       event.sender.send('ipcRecordUpdated', result['id']);
     }).catch(function(err) {
-      console.log(err);
+      if (debug == true) {
+        console.log(err);
+      }
     });
   });
 });
@@ -132,25 +202,34 @@ ipc.on('addService', function(event, user_id, data) {
       date: data["date"],
       km: data["km"]
     };
-    console.log('adding service');
-    console.log(doc);
+      if (debug == true) {
+      console.log('adding service');
+      console.log(doc);
+      }
     db.put(doc).then(function (response) {
     }).catch(function (err) {
-      console.log(err);
+      if (debug == true) {
+        console.log(err);
+      }
     });
   }
 });
 
 ipc.on('fetchUsers', function(event, data) {
+  if (debug == true) {
     console.log('fetching users');
+  }
   db.find({
     selector: buildUserSelector(data),
   }).then(function (result) {
-    console.log(result);
-
+    if (debug == true) {
+      console.log(result);
+    }
     event.sender.send('ipcFetchUsers', result.docs);
   }).catch(function (err) {
-    console.log(err);
+    if (debug == true) {
+      console.log(err);
+    }
   });
 });
 
@@ -168,7 +247,9 @@ function buildUserSelector(data) {
       name: {$regex: regex},
     };
   }
-  console.log(selector);
+  if (debug == true) {
+    console.log(selector);
+  }
   return selector;
 }
 
@@ -176,23 +257,22 @@ ipc.on('fetchServices', function(event, data) {
   db.find({
     selector: {type: "service", user_id: data['user_id']},
   }).then(function (result) {
-    console.log('fetched services');
-    console.log(result);
+    if (debug == true) {
+      console.log('fetched services');
+      console.log(result);
+    }
     event.sender.send('ipcFetchServices', result.docs);
   }).catch(function (err) {
-    console.log(err);
-  });
-});
-
-ipc.on('dumpDb', function(event, data) {
-  let ws = fs.createWriteStream('dump.txt');
-  db.dump(ws).then(function (res) {
-    // res should be {ok: true}
+    if (debug == true) {
+      console.log(err);
+    }
   });
 });
 
 ipc.on('resetDb', function(event, data) {
-  console.log('Recreating DB')
+  if (debug == true) {
+    console.log('Recreating DB')
+  }
   db.destroy();
   db = new PouchDB(db_name);
 });

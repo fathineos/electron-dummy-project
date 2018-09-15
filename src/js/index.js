@@ -126,6 +126,12 @@ function populateServiceList(services) {
   tblServices.draw();
 }
 
+function add_alert(message) {
+  $('#alert-placeholder').html(
+    '<div class="alert alert-warning alert-dismissible fade show" role="alert">' + message +
+    '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+}
+
 function initListeners() {
   // Handle ipc events
   ipc.on('ipcFetchUsers', function(event, users) {
@@ -175,11 +181,9 @@ function initListeners() {
         let _service_id = _this.data('serviceid');
         let field_name = _this.data('field');
         let new_value = this.innerText;
-        console.log(_service_id)
         updateService(_service_id, field_name, new_value);
       });
     });
-
   });
 
   function deleteService(service_id) {
@@ -187,7 +191,7 @@ function initListeners() {
   }
 
   ipc.on('ipcRecordConflict', function(event, response) {
-    alert("Record already exists");
+    alert('Record already exists');
   });
 
   ipc.on('ipcRecordDeleted', function(event, response) {
@@ -203,6 +207,10 @@ function initListeners() {
         }
       });
     });
+  });
+
+  ipc.on('ipcAlertMessage', function(event, msg) {
+    alert(msg);
   });
 
   $('#modal-user-edit').on('show.bs.modal', function (event) {
